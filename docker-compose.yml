@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  n8n:
+    build: .
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    env_file:
+      - .env
+    environment:
+      - N8N_CUSTOM_EXTENSIONS=n8n-nodes-puppeteer
+    volumes:
+      - data:/home/node/.n8n
+    depends_on:
+      - postgres
+      - redis
+
+  n8n-worker:
+    build: .
+    container_name: n8n-worker
+    command: worker
+    env_file:
+      - .env
+    environment:
+      - N8N_CUSTOM_EXTENSIONS=n8n-nodes-puppeteer
+    volumes:
+      - data:/home/node/.n8n
+    depends_on:
+      - n8n
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6-alpine
+    restart: always
+    volumes:
+      - redisdata:/data
+
+volumes:
+  data:
+  pgdata:
+  redisdata:
